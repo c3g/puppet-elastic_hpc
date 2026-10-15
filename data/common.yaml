@@ -1,4 +1,15 @@
 ---
+lookup_options:
+  magic_castle::site::tags:
+    merge: 'hash'
+
+magic_castle::site::tags:
+  node:
+    - elastic_hpc::node
+    - elastic_hpc::cvmfs::client
+  login:
+    - elastic_hpc::cvmfs::client
+
 profile::cvmfs::client::alien_cache_repo_template: "elastic_hpc/alien_cache.conf"
 profile::slurm::node::cgroup_params:
   ConstrainCores: no

@@ -1,4 +1,6 @@
 class elastic_hpc::cvmfs::client ( ) {
+  require profile::cvmfs::client
+
   file { '/etc/cvmfs/config.d/ref.mugqic.local':
     ensure => 'file',
     owner  => 'root',
