@@ -1,0 +1,13 @@
+{
+    "name": "puppet-elastic_hpc",
+    "version": "0.1.0",
+    "author": "Félix-Antoine Fortin",
+    "summary": "Puppet module complementing puppet-magic_castle for C3G elastic hpc project",
+    "license": "MIT",
+    "source": "https://github.com/c3g/puppet-elastic-hpc",
+    "project_page": "https://github.com/c3g/puppet-elastic-hpc",
+    "issues_url": "https://github.com/c3g/puppet-elastic-hpc/issues",
+    "dependencies": [ 
+        { "name":"puppetlabs/stdlib", "version_requirement": ">= 5.2.0"  }
+    ]
+}

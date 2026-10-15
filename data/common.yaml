@@ -1,0 +1,5 @@
+---
+profile::cvmfs::client::alien_cache_repo_template: "elastic_hpc/alien_cache.conf"
+profile::slurm::node::cgroup_params:
+  ConstrainCores: no
+  MinRAMSpace: 1000
