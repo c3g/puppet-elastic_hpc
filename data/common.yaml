@@ -10,6 +10,12 @@ magic_castle::site::tags:
   login:
     - elastic_hpc::cvmfs::client
 
+profile::ceph::client::mount_options:
+  - mds_namespace=cephfs_4_2
+  - x-systemd.device-timeout=30
+  - x-systemd.mount-timeout=30
+  - noatime
+  - rw
 profile::cvmfs::client::alien_cache_repo_template: "elastic_hpc/alien_cache.conf"
 profile::slurm::node::cgroup_params:
   ConstrainCores: no
