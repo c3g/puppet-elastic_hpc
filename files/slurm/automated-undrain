@@ -3,10 +3,9 @@
 usage (){
 
 echo
-echo "usage: $0 -y script to restart all drained nodes, no option or input needed"
+echo "usage: $0 -y script to restart all nodes with errors"
 echo
-echo "   Jobs on draining nodes are killed. Draining nodes are restarted"
-echo "   localscratch and systemctl bugs are fixed"
+echo "   Running Jobs on nodes are canceled, nodes are restarted"
 echo "   if -y is not provided a dry run is executed"
 
 }
