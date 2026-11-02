@@ -1,0 +1,59 @@
+#!/bin/bash
+
+usage (){
+
+echo
+echo "usage: $0 script to restart all drained nodes, no option or input needed"
+echo
+echo "   Jobs on draining nodes are killed. Draining nodes are restarted"
+echo "   localscratch and systemctl bugs are fixed"
+
+}
+
+if [ $# -gt 0 ]; then
+  usage
+  exit 1
+fi
+
+TEMP_FILE=$(mktemp)
+PATH=/opt/software/slurm/bin:${PATH}
+
+sinfo -hlN  --partition cpubase_bycore_b1 | grep error 
+retcode=$?
+if [ $retcode -eq 1 ]; then 
+  echo All nodes are healthy
+  exit 0 
+fi
+
+sinfo -hlN  --partition cpubase_bycore_b1 | grep error | awk '{print $1}' > ${TEMP_FILE}
+NODES=$(cat ${TEMP_FILE} |  awk '{printf "%s,",  $1}')
+sudo /opt/software/slurm/bin/scontrol reboot ASAP nextstate=RESUME "${NODES}"
+echo  kill hanging jobs
+sudo /opt/software/slurm/bin/scancel --nodelist="${NODES}"
+
+echo rebooting machines
+
+mapfile -t lines < "${TEMP_FILE}"
+for M in "${lines[@]}"; do
+  echo -n  "$M "
+  while true ; do
+    ssh -q -o BatchMode=yes -o ConnectTimeout=5 $M "true" 2>/dev/null
+    ret=$?
+    if [ $ret -eq 0 ]; then break ; fi
+    echo Machine is not ready waiting 7 sec
+    sleep 7
+  done
+  echo booted
+done 
+
+DO_IT='y'
+echo "Undraining nodes"
+
+if [[ "$DO_IT" == "y" ]]; then
+  cat ${TEMP_FILE} | tr '\n' ','  | xargs -i  sudo /opt/software/slurm/bin/scontrol update State=UNDRAIN NodeName={}
+else
+  echo run the following to undrain all nodes one you are happy with the situation
+  echo "cat ${TEMP_FILE} | tr '\n' ','  | xargs -i  sudo /opt/software/slurm/bin/scontrol update State=UNDRAIN NodeName={}"
+fi	
+
+rm -f "$TEMP_FILE"
