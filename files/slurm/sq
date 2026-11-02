@@ -1,0 +1,2 @@
+#!/bin/bash
+squeue -o "%.10i %.4c %.5m %10u  %.85j  %.8T %.10M %.11l  %.20R %Q  %V " $@
