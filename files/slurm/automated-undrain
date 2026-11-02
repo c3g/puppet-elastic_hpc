@@ -3,17 +3,31 @@
 usage (){
 
 echo
-echo "usage: $0 script to restart all drained nodes, no option or input needed"
+echo "usage: $0 -y script to restart all drained nodes, no option or input needed"
 echo
 echo "   Jobs on draining nodes are killed. Draining nodes are restarted"
 echo "   localscratch and systemctl bugs are fixed"
+echo "   if -y is not provided a dry run is executed"
 
 }
 
-if [ $# -gt 0 ]; then
+if [ $# -gt 1 ]; then
   usage
   exit 1
 fi
+
+if [ $# -eq 1 ]; then
+
+  if [[ $1 == "-y" ]]; then 
+    usage
+    exit 1
+  fi
+  DO_IT='y'
+fi
+
+
+
+
 
 TEMP_FILE=$(mktemp)
 PATH=/opt/software/slurm/bin:${PATH}
@@ -27,6 +41,11 @@ fi
 
 sinfo -hlN  --partition cpubase_bycore_b1 | grep error | awk '{print $1}' > ${TEMP_FILE}
 NODES=$(cat ${TEMP_FILE} |  awk '{printf "%s,",  $1}')
+if [[ "$DO_IT" != "y" ]]; then
+  echo Not rebooting nodes
+  echo dry run
+  exit 0
+fi
 sudo /opt/software/slurm/bin/scontrol reboot ASAP nextstate=RESUME "${NODES}"
 echo  kill hanging jobs
 sudo /opt/software/slurm/bin/scancel --nodelist="${NODES}"
@@ -46,7 +65,6 @@ for M in "${lines[@]}"; do
   echo booted
 done 
 
-DO_IT='y'
 echo "Undraining nodes"
 
 if [[ "$DO_IT" == "y" ]]; then
