@@ -1,3 +1,4 @@
+#!/bin/bash
 reason_to_drain(){
   echo Draining because: $1
   exit 1
