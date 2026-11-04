@@ -1,1 +1,2 @@
 ---
+elastic_hpc::cvmfs::localdisk_quota_limit: 30000

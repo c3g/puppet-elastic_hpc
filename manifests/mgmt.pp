@@ -1,21 +1,20 @@
-# Put slurmctld state and prometheus data on dedicated mgmt volumes
+# Bind mount mgmt volumes on directories managed by other modules
 #
-# Set $migrate_data to true to copy the existing data on the volumes
-# (services writing in the directories are stopped during the copy).
+# Each entry is passed to elastic_hpc::bind_mount. The volumes must exist
+# (mgmt volumes in main.tf with bind_mount = false). Example:
+#
+# elastic_hpc::mgmt::bind_mounts:
+#   slurm:
+#     source: /mnt/mgmt/slurm
+#     target: /var/spool/slurm
+#     services: [slurmctld]
+#     migrate_data: false
 class elastic_hpc::mgmt (
-  Stdlib::Absolutepath $slurm_volume = '/mnt/mgmt/slurm',
-  Stdlib::Absolutepath $prometheus_volume = '/mnt/mgmt/prometheus',
-  Boolean $migrate_data = false,
+  Hash[String[1], Hash] $bind_mounts = {},
 ) {
-  elastic_hpc::bind_mount { '/var/spool/slurm':
-    source       => $slurm_volume,
-    services     => ['slurmctld'],
-    migrate_data => $migrate_data,
-  }
-
-  elastic_hpc::bind_mount { '/var/lib/prometheus':
-    source       => $prometheus_volume,
-    services     => ['prometheus'],
-    migrate_data => $migrate_data,
+  $bind_mounts.each |$mount_name, $params| {
+    elastic_hpc::bind_mount { $mount_name:
+      * => $params,
+    }
   }
 }
