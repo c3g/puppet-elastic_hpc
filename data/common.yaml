@@ -1,2 +1,14 @@
 ---
 elastic_hpc::cvmfs::localdisk_quota_limit: 30000
+
+lookup_options:
+  jupyterhub::kernel::venv::pip_environment:
+    merge: deep
+  jupyterhub::jupyterhub_config_hash:
+    merge: deep
+  profile::software_stack::lmod_default_modules:
+    merge: deep
+
+# StdEnv/2023 and mii are automatically loaded
+profile::software_stack::lmod_default_modules:
+  - jupyterlab-apps/1.0
