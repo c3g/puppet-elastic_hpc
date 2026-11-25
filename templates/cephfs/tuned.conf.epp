@@ -1,0 +1,10 @@
+<%- | String $base_profile,
+      Integer $dirty_expire_centisecs,
+| -%>
+# Managed by Puppet (elastic_hpc::cephfs_client_tuning)
+[main]
+summary=<%= $base_profile %> + CephFS writeback tuning
+include=<%= $base_profile %>
+
+[sysctl]
+vm.dirty_expire_centisecs=<%= $dirty_expire_centisecs %>

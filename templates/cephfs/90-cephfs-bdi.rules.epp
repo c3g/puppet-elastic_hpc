@@ -1,0 +1,6 @@
+<%- | Integer $bdi_max_bytes,
+| -%>
+# Managed by Puppet (elastic_hpc::cephfs_client_tuning)
+# Cap the dirty data of each CephFS mount. strict_limit is set first so that
+# the cap is enforced even below the global dirty background threshold.
+ACTION=="add", SUBSYSTEM=="bdi", KERNEL=="ceph-*", ATTR{strict_limit}="1", ATTR{max_bytes}="<%= $bdi_max_bytes %>"
