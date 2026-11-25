@@ -5,7 +5,7 @@
 # - udev rule capping the dirty data of every CephFS mount (bdi ceph-*) to
 #   $bdi_max_bytes, enforced at all time with strict_limit
 #
-class elastic_hpc::cephfs_client_tuning (
+class elastic_hpc::cephfs::client_tuning (
   String[1] $base_profile = 'hpc-compute',
   String[1] $profile_name = 'hpc-compute-cephfs',
   Integer[0] $bdi_max_bytes = 1073741824,

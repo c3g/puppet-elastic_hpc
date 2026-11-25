@@ -20,13 +20,13 @@ magic_castle::site::tags:
   login:
     - elastic_hpc::cvmfs::client
     - elastic_hpc::login
-    - elastic_hpc::cephfs_client_tuning
+    - elastic_hpc::cephfs::client_tuning
   mgmt:
     - elastic_hpc::mgmt
   node:
     - elastic_hpc::node
     - elastic_hpc::cvmfs::client
-    - elastic_hpc::cephfs_client_tuning
+    - elastic_hpc::cephfs::client_tuning
 ```
 
 The parameters of the classes can be customized by defining values in the hieradata.
@@ -34,7 +34,7 @@ The following sections list the available classes, defined types and templates, 
 role and their parameters.
 - [`elastic_hpc`](#elastic_hpc)
 - [`elastic_hpc::bind_mount`](#elastic_hpcbind_mount)
-- [`elastic_hpc::cephfs_client_tuning`](#elastic_hpccephfs_client_tuning)
+- [`elastic_hpc::cephfs::client_tuning`](#elastic_hpccephfsclient_tuning)
 - [`elastic_hpc::cvmfs::client`](#elastic_hpccvmfsclient)
 - [`elastic_hpc::login`](#elastic_hpclogin)
 - [`elastic_hpc::mgmt`](#elastic_hpcmgmt)
@@ -104,7 +104,7 @@ elastic_hpc::bind_mount { '/var/spool/slurm':
 
 When `migrate_data` is true, the `rsync` package is installed.
 
-## `elastic_hpc::cephfs_client_tuning`
+## `elastic_hpc::cephfs::client_tuning`
 
 This class tunes the CephFS kernel client of compute nodes so that the capabilities
 (caps) a node holds on files are released quickly when another client asks for them. 
@@ -145,10 +145,10 @@ A larger value does not increase the throughput, it only makes cap releases slow
 <summary>default values</summary>
 
 ```yaml
-elastic_hpc::cephfs_client_tuning::base_profile: 'hpc-compute'
-elastic_hpc::cephfs_client_tuning::profile_name: 'hpc-compute-cephfs'
-elastic_hpc::cephfs_client_tuning::bdi_max_bytes: 1073741824
-elastic_hpc::cephfs_client_tuning::dirty_expire_centisecs: 1000
+elastic_hpc::cephfs::client_tuning::base_profile: 'hpc-compute'
+elastic_hpc::cephfs::client_tuning::profile_name: 'hpc-compute-cephfs'
+elastic_hpc::cephfs::client_tuning::bdi_max_bytes: 1073741824
+elastic_hpc::cephfs::client_tuning::dirty_expire_centisecs: 1000
 ```
 </details>
 
@@ -159,7 +159,7 @@ The class is attributed to the instances with the `cephfs-client-tuning` tag.
 ```yaml
 magic_castle::site::tags:
   cephfs-client-tuning:
-    - elastic_hpc::cephfs_client_tuning
+    - elastic_hpc::cephfs::client_tuning
 ```
 
 ```hcl
@@ -170,7 +170,7 @@ instances = {
 Nodes with a slower network can use a smaller cap:
 
 ```yaml
-elastic_hpc::cephfs_client_tuning::bdi_max_bytes: 536870912
+elastic_hpc::cephfs::client_tuning::bdi_max_bytes: 536870912
 ```
 </details>
 
