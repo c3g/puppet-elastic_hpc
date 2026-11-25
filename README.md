@@ -20,11 +20,13 @@ magic_castle::site::tags:
   login:
     - elastic_hpc::cvmfs::client
     - elastic_hpc::login
+    - elastic_hpc::cephfs_client_tuning
   mgmt:
     - elastic_hpc::mgmt
   node:
     - elastic_hpc::node
     - elastic_hpc::cvmfs::client
+    - elastic_hpc::cephfs_client_tuning
 ```
 
 The parameters of the classes can be customized by defining values in the hieradata.
@@ -105,14 +107,9 @@ When `migrate_data` is true, the `rsync` package is installed.
 ## `elastic_hpc::cephfs_client_tuning`
 
 This class tunes the CephFS kernel client of compute nodes so that the capabilities
-(caps) a node holds on files are released quickly when another client asks for them.
+(caps) a node holds on files are released quickly when another client asks for them. 
+This is will hopefully help with the node eviction problem on Juno. 
 
-When a Slurm job finishes, the Nextflow head job reads `.exitcode` in the task work
-directory. If the compute node that ran the task still holds the caps of that file, the
-MDS must recall them, and the node first has to write back its dirty data. With the
-default dirty limits (`vm.dirty_ratio` is a percentage of the available memory, up to
-tens of GB on large nodes), that write back can take minutes and the read blocks the
-Nextflow task monitor in `GridTaskHandler.readExitStatus()`, freezing the whole pipeline.
 
 The class manages:
 
@@ -125,19 +122,15 @@ The class manages:
 The udev rule caps the dirty data of each CephFS mount only, so the node local disk
 (i.e.: `/localscratch`) keeps the global limits of `base_profile`. `strict_limit` makes
 the kernel enforce the cap at all time, not only once the global dirty background
-threshold is reached. The rule applies to CephFS mounted later (autofs, remount, reboot)
-and, when the rule changes, Puppet runs
+threshold is reached. When the rule changes, Puppet runs
 `udevadm control --reload && udevadm trigger --subsystem-match=bdi --action=add`
 to apply it on the mounts already in place.
 
 `bdi_max_bytes` should be the amount of data a node can flush to Ceph in about a second
 when many nodes write at the same time. 1 GiB fits nodes that can write several GB/s.
 A larger value does not increase the throughput, it only makes cap releases slower.
-`max_bytes` is converted to a ratio of the global dirty limit by the kernel, so the value
-read back from sysfs can differ slightly from the one set.
+`max_bytes` is converted to a ratio of the global dirty limit by the kernel.
 
-The per device `max_bytes` and `strict_limit` attributes require a kernel that provides
-them (mainline 6.2, backported in the EL 9 kernel).
 
 ### parameters
 
@@ -162,16 +155,11 @@ elastic_hpc::cephfs_client_tuning::dirty_expire_centisecs: 1000
 <details>
 <summary>example</summary>
 
-The class is attributed to the instances with the `cephfs-client-tuning` tag. The
-mount options that reduce the caps held by the clients are set with
-[`profile::ceph::client`](https://github.com/ComputeCanada/puppet-magic_castle#profilecephclient):
-
+The class is attributed to the instances with the `cephfs-client-tuning` tag. 
 ```yaml
 magic_castle::site::tags:
   cephfs-client-tuning:
     - elastic_hpc::cephfs_client_tuning
-
-profile::ceph::client::mount_options: ['noatime', 'wsync', 'caps_wanted_delay_max=10']
 ```
 
 ```hcl
@@ -179,13 +167,6 @@ instances = {
   node = { type = "...", tags = ["node", "cephfs-client-tuning"], count = 4 }
 }
 ```
-
-`wsync` makes directory operations synchronous so that a client does not keep exclusive
-caps on the Nextflow task directories, and `caps_wanted_delay_max` (60 s by default) is
-the maximum time a client keeps caps it does not use anymore. Mount options only take
-effect when the share is mounted again; they may not all be applied by a remount, so
-reboot the nodes or unmount and mount the shares.
-
 Nodes with a slower network can use a smaller cap:
 
 ```yaml
@@ -193,25 +174,6 @@ elastic_hpc::cephfs_client_tuning::bdi_max_bytes: 536870912
 ```
 </details>
 
-### verification
-
-```bash
-tuned-adm active
-sysctl vm.dirty_ratio vm.dirty_background_ratio vm.dirty_expire_centisecs
-grep . /sys/class/bdi/ceph-*/{strict_limit,max_bytes}
-```
-
-The active profile is `profile_name`, and every `ceph-*` device has `strict_limit` set to `1`
-and `max_bytes` close to `bdi_max_bytes`. As root, the dirty data and threshold of each
-mount can be followed under load with:
-
-```bash
-grep -E 'BdiDirtied|BdiWriteback|BdiDirtyThresh' /sys/kernel/debug/bdi/ceph-*/stats
-```
-
-### dependencies
-
-The `tuned` package is installed and the `tuned` service is enabled and started.
 
 ## `elastic_hpc::cvmfs::client`
 

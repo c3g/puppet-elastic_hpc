@@ -1,13 +1,10 @@
 # CephFS client tuning for compute nodes
 #
 # Shortens the time a CephFS client needs to release its capabilities when
-# another client (i.e.: the Nextflow head job reading .exitcode) asks for them:
 # - tuned profile inheriting $base_profile with a shorter dirty data expiry
 # - udev rule capping the dirty data of every CephFS mount (bdi ceph-*) to
 #   $bdi_max_bytes, enforced at all time with strict_limit
 #
-# The mount options (wsync, caps_wanted_delay_max, ...) are set with
-# profile::ceph::client::mount_options, not by this class.
 class elastic_hpc::cephfs_client_tuning (
   String[1] $base_profile = 'hpc-compute',
   String[1] $profile_name = 'hpc-compute-cephfs',
@@ -85,6 +82,5 @@ class elastic_hpc::cephfs_client_tuning (
     subscribe   => File['/etc/udev/rules.d/90-cephfs-bdi.rules'],
   }
 
-  # CephFS mounted by profile::ceph::client in the same run get the rule
   File['/etc/udev/rules.d/90-cephfs-bdi.rules'] -> Mount <| fstype == 'ceph' |>
 }
